@@ -20,7 +20,7 @@ import hashlib
 import logging
 import os
 import sys
-import xmlrpclib
+import xmlrpclib  # noqa
 
 from bs4 import BeautifulSoup
 import jinja2
