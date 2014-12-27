@@ -15,16 +15,16 @@
 # author: Christian Berendt <mail@cberendt.net>
 
 import argparse
-from bs4 import BeautifulSoup
-import datetime
-from distutils.version import StrictVersion
+from datetime import datetime  # noqa
 import hashlib
-import jinja2
 import logging
 import os
-import PyRSS2Gen
 import sys
 import xmlrpclib
+
+from bs4 import BeautifulSoup
+import jinja2
+import PyRSS2Gen
 import yaml
 
 
@@ -35,10 +35,8 @@ def initialize_logging():
 def parse_command_line_arguments():
     """Parse the command line arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("category", type=str, default=None,
-                        help="The category that should be used.")
-    parser.add_argument("path", type=str, default=None,
-                        help="The path to the template and configuration file.")
+    parser.add_argument("configuration", type=str, default=None,
+                        help="Path to configuration file.")
     return parser.parse_args()
 
 
@@ -48,41 +46,32 @@ def get_template(template):
     return environment.get_template(os.path.basename(template))
 
 
-def load_configuration(configuration):
-    return yaml.load(open(configuration))
-
-
 def get_connection():
-    return xmlrpclib.ServerProxy('https://pypi.python.org/pypi', allow_none=True)
+    return xmlrpclib.ServerProxy('https://pypi.python.org/pypi',
+                                 allow_none=True)
 
 
 def main():
 
     initialize_logging()
     args = parse_command_line_arguments()
-
-    filename_configuration = os.path.join( 
-        args.path,
-        "openstack_%s_versions.yaml" % args.category
-    )
-
-    filename_html = os.path.join(args.path,
-                                 "openstack_%s_versions.html" % args.category)
-    filename_feed = os.path.join(args.path,
-                                 "openstack_%s_versions.xml" % args.category)
-
-    packages = load_configuration(filename_configuration)
-    template = get_template(os.path.join(args.path, "pypi_versions.tmpl"))
+    configuration = yaml.load(open(args.configuration))
+    template = get_template(os.path.join(configuration['basepath'],
+                                         configuration['files']['template']))
+    file_feed = os.path.basename(configuration['files']['feed'])
+    file_yaml = os.path.basename(configuration['files']['yaml'])
+    file_html = os.path.basename(configuration['files']['html'])
     client = get_connection()
 
     rss = PyRSS2Gen.RSS2(
-        title="OpenStack %s packages on PyPi" % args.category,
-        link="http://ghostcloud.net/openstack_%s_versions.html" % args.category,
-        description="The latest available OpenStack %s packages on PyPi." % args.category,
-        lastBuildDate=datetime.datetime.now()
+        title=configuration['title'],
+        link="%s/%s" % (configuration['baseurl'], file_html),
+        description=configuration['description'],
+        lastBuildDate=datetime.now()
     )
 
-    for package in packages.iterkeys():
+    packages = {}
+    for package in configuration['packages']:
         logging.debug("checking package %s" % package)
 
         releases = client.package_releases(package, True)
@@ -90,20 +79,24 @@ def main():
             urls = client.release_urls(package, releases[0])
             if len(urls) == 0:
                 continue
+            packages[package] = {}
             packages[package]['version'] = releases[0]
             data = client.release_data(package, packages[package]['version'])
             if urls[0]["upload_time"]:
-                upload_time = datetime.datetime.strptime(str(urls[0]["upload_time"]), "%Y%m%dT%H:%M:%S")
-                diff = datetime.datetime.utcnow() - upload_time
+                upload_time = datetime.strptime(str(urls[0]["upload_time"]),
+                                                "%Y%m%dT%H:%M:%S")
+                diff = datetime.utcnow() - upload_time
                 packages[package]['days_ago'] = diff.days
-                packages[package]['upload_time'] = datetime.datetime.strftime(upload_time, "%Y-%m-%d %H:%M:%S")
+                packages[package]['upload_time'] = datetime.strftime(
+                    upload_time, "%Y-%m-%d %H:%M:%S")
             packages[package]['release_url'] = data['release_url']
             packages[package]['author'] = data['author']
             packages[package]['url'] = urls[0]["url"]
-            if packages[package]['url'].endswith('.whl'):
+            if packages[package]['url'].endswith('.whl') and len(urls) > 1:
                 packages[package]['url'] = urls[1]["url"]
             packages[package]['package_url'] = data["package_url"]
-            packages[package]['filename'] = os.path.basename(packages[package]['url'])
+            packages[package]['filename'] = os.path.basename(
+                packages[package]['url'])
             packages[package]['summary'] = data["summary"]
 
             checksum = hashlib.md5()
@@ -119,19 +112,34 @@ def main():
             )
             rss.items.append(item)
 
-    with open(filename_configuration, 'w') as outfile:
-        outfile.write(yaml.dump(packages, default_flow_style=False))
-
     output = template.render({
         'packages': packages,
-        'timestamp': datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
-        'title': args.category})
+        'timestamp': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        'title': configuration['title'],
+        'description': configuration['description'],
+        'url_feed': "%s/%s" % (configuration['baseurl'], file_feed),
+        'url_yaml': "%s/%s" % (configuration['baseurl'], file_yaml),
+        'url_html': "%s/%s" % (configuration['baseurl'], file_html)
+    })
 
-    with open(filename_html, 'w') as outfile:
-        soup = BeautifulSoup(output)
-        outfile.write(soup.prettify())
-    with open(filename_feed, 'w') as outfile:
-        outfile.write(rss.to_xml())
+    if 'yaml' in configuration['files']:
+        file_yaml = os.path.join(configuration['basepath'],
+                                 configuration['files']['yaml'])
+        with open(file_yaml, 'w') as outfile:
+            outfile.write(yaml.dump(packages, default_flow_style=False))
+
+    if 'html' in configuration['files']:
+        file_html = os.path.join(configuration['basepath'],
+                                 configuration['files']['html'])
+        with open(file_html, 'w') as outfile:
+            soup = BeautifulSoup(output)
+            outfile.write(soup.prettify())
+
+    if 'feed' in configuration['files']:
+        file_feed = os.path.join(configuration['basepath'],
+                                 configuration['files']['feed'])
+        with open(file_feed, 'w') as outfile:
+            outfile.write(rss.to_xml())
 
     return 0
 

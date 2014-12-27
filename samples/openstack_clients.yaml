@@ -1,0 +1,33 @@
+---
+title: OpenStack client packages
+description: Listing of latest OpenStack client packages on PyPi
+baseurl: http://ghostcloud.net
+basepath: /opt/ghostcloud/pypiversions
+files:
+  yaml: output/openstack_client.yaml
+  html: output/openstack_client.html
+  feed: output/openstack_client.xml
+  template: templates/ghostcloud.tmpl
+packages:
+- python-storyboardclient
+- python-barbicanclient
+- python-ceilometerclient
+- python-cinderclient
+- python-designateclient
+- python-ganttclient
+- python-glanceclient
+- python-heatclient
+- python-ironicclient
+- python-keystoneclient
+- python-keystoneclient-federation
+- python-keystoneclient-kerberos
+- python-kiteclient
+- python-manilaclient
+- python-neutronclient
+- python-novaclient
+- python-openstackclient
+- python-saharaclient
+- python-swiftclient
+- python-troveclient
+- python-tuskarclient
+- python-zaqarclient

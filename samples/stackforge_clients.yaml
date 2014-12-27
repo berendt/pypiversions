@@ -1,0 +1,27 @@
+---
+title: Stackforge client packages
+description: Listing of latest Stackforge client packages on PyPi
+baseurl: http://ghostcloud.net
+basepath: /opt/ghostcloud/pypiversions
+files:
+  yaml: output/stackforge_client.yaml
+  html: output/stackforge_client.html
+  feed: output/stackforge_client.xml
+  template: templates/ghostcloud.tmpl
+packages:
+- python-blazarclient
+- python-cloudkittyclient
+- python-congressclient
+- python-group-based-policy-client
+- python-libraclient
+- python-magnetodbclient
+- python-magnumclient
+- python-mistralclient
+- python-monascaclient
+- python-muranoclient
+- python-opentsdbclient
+- python-rackclient
+- python-rallyclient
+- python-solumclient
+- python-surveilclient
+- python-tackerclient

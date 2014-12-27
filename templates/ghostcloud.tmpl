@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+  <link rel="alternate" type="application/rss+xml" href="{{ url_feed }}" title="{{ description }}"/>
+  <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.2/css/jquery.dataTables.css"/>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <style type="text/css">
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.header,
+.footer {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+.header {
+  border-bottom: 1px solid #e5e5e5;
+  padding-top: 19px;
+}
+.header h3 {
+  padding-bottom: 19px;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+}
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+.row {
+  padding-bottom: 19px;
+  padding-top: 19px;
+}
+  </style>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script type="text/javascript" charset="utf-8" src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script type="text/javascript" charset="utf-8" src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.js"></script>
+  <script type="text/javascript">
+$(document).ready( function () {
+    $('#table_packages').DataTable({
+      "pageLength": 20,
+      "bPaginate": false
+    });
+} );
+  </script>
+  <title>{{ title }}</title>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <nav>
+     <ul class="nav nav-pills pull-right">
+      <li role="presentation" class="active"><a href="http://www.ghostcloud.net/">ghostcloud.net</a></li>
+     </ul>
+    </nav>
+    <h3 class="text-muted">{{ description }} <a href="{{ url_feed }}" type="application/rss+xml"><img src="/feed-icon.png" style="width: 16px; height: 16px;" alt="RSS2 Feed Icon" /></a></h3>
+   </div>
+   <div class="row">
+    <table id="table_packages" class="display">
+     <thead>
+      <tr>
+       <th>Name</th>
+       <th>Version</th>
+       <th>Description</th>
+       <th>Upload Time</th>
+       <th>Download</th>
+      </tr>
+     </thead>
+     <tbody>
+{% for package in packages %}
+      <tr>
+       <td><a href="{{ packages[package]['package_url'] }}">{{ package }}</a></td>
+       <td>
+{% if packages[package]['version'] %}
+{{ packages[package]['version'] }}
+{% endif %}
+       </td>
+       <td>{{ packages[package]['summary'] }}</td>
+       <td>
+{% if packages[package]['upload_time'] %}
+{{ packages[package]['upload_time'] }} ({{ packages[package]['days_ago'] }} days ago)
+{% endif %}
+       </td>
+       <td>
+{% if packages[package]['url'] %}
+        <a href="{{ packages[package]['url'] }}">{{ packages[package]['filename'] }}</a>
+{% endif %}
+       </td>
+      </tr>
+{% endfor %}
+     </tbody>
+    </table>
+   </div>
+   <footer class="footer">
+    <p>Last update: {{ timestamp }} (UTC)</p>
+    <p><a href="http://www.ghostcloud.net">Powered by ghostcloud.net.</a></p>
+   </footer>
+  </div>
+ </body>
+</html>

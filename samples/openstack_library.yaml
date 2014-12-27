@@ -1,0 +1,32 @@
+---
+title: OpenStack library packages
+description: Listing of latest OpenStack library packages on PyPi
+baseurl: http://ghostcloud.net
+basepath: /opt/ghostcloud/pypiversions
+files:
+  yaml: output/openstack_library.yaml
+  html: output/openstack_library.html
+  feed: output/openstack_library.xml
+  template: templates/ghostcloud.tmpl
+packages:
+- cliff
+- hacking
+- lockfile
+- openstack-doc-tools
+- oslo.concurrency
+- oslo.config
+- oslo.db
+- oslo.i18n
+- oslo.log
+- oslo.messaging
+- oslo.middleware
+- oslo.rootwrap
+- oslo.serialization
+- oslo.utils
+- oslo.version
+- oslo.vmware
+- oslosphinx
+- oslotest
+- pbr
+- stevedore
+- taskflow
